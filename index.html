@@ -77,6 +77,21 @@ h2 .tag{font:600 .72rem var(--body);letter-spacing:.08em;background:var(--star);
 .btn{font:700 1rem var(--display);letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:6px;padding:12px 18px;cursor:pointer;background:var(--star);color:#fff;text-decoration:none;display:inline-block}
 .btn.wa{background:var(--wa)}
 .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+nav.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:1px solid var(--line)}
+nav.tabs button{font:600 1rem var(--display);letter-spacing:.06em;text-transform:uppercase;background:none;border:0;padding:10px 14px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--star)}
+.alt{font-size:.88rem;color:var(--muted)}
+.alt button,.alt a{font:inherit;color:var(--sky-ink);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.results table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tablebox{overflow-x:auto;margin-top:12px}
+.results th,.results td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.results th{font:600 .8rem var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.results td.sec{font-family:var(--display);font-weight:800;text-transform:uppercase;padding-top:18px;color:var(--sky-ink)}
+.pill{display:inline-block;font-weight:600;font-size:.8rem;padding:2px 9px;border-radius:999px}
+.pill.yes{background:var(--yes-soft);color:var(--yes)}.pill.maybe{background:var(--maybe-soft);color:var(--maybe)}.pill.no{background:var(--no-soft);color:var(--no)}
+.pill.none{color:var(--muted)}
+.cellnote{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
+.empty{color:var(--muted);padding:20px 0}
 @media (prefers-reduced-motion:no-preference){.votes button,.day{transition:background .12s,border-color .12s}}
 </style>
 </head>
@@ -93,6 +108,16 @@ h2 .tag{font:600 .72rem var(--body);letter-spacing:.08em;background:var(--star);
 </header>
 
 <main class="wrap">
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-form" aria-selected="true">My answers</button>
+    <button role="tab" id="tab-results" aria-selected="false">Everyone's answers</button>
+  </nav>
+
+  <div id="view-results" class="results" hidden>
+    <div id="results"><p class="empty">Loading answers…</p></div>
+  </div>
+
+  <div id="view-form">
   <div class="who">
     <label for="name">Your name
       <input type="text" id="name" placeholder="e.g. Nikos" autocomplete="given-name">
@@ -121,15 +146,16 @@ h2 .tag{font:600 .72rem var(--body);letter-spacing:.08em;background:var(--star);
   </section>
 
   <section class="send">
-    <h2>Send me your answers</h2>
-    <p class="sub" style="margin:0">Your answers stay on this phone or computer until you send them. Pick one:</p>
+    <h2>Submit your answers</h2>
+    <p class="sub" style="margin:0">They'll show up in “Everyone's answers”. Changed your mind? Submit again with the same name and your old answers get replaced.</p>
     <div class="actions">
-      <a class="btn wa" id="wa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
-      <button class="btn" id="copy" type="button">Copy my answers</button>
+      <button class="btn" id="submit" type="button">Submit</button>
     </div>
     <span class="status" id="status"></span>
+    <p class="alt">Submit not working? <a id="wa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a> or <button id="copy" type="button">copy your answers</button>.</p>
     <textarea id="copybox" hidden readonly></textarea>
   </section>
+  </div>
 </main>
 
 <script>
@@ -251,6 +277,56 @@ updateWa();
 $("#wa").addEventListener("click",e=>{
   if(!state.name.trim()){e.preventDefault();$("#status").textContent="Add your name at the top first.";$("#name").focus();}
 });
+// Answers live in a Google Sheet behind this Apps Script web app
+const ENDPOINT="https://script.google.com/macros/s/AKfycbxqOQAGBNxArNF7ZwzWgqjOlxyPJeg9Z2S5ECZNN_ZKE0thBBwtpjDuSemzmjfyC3E/exec";
+
+$("#submit").onclick=async()=>{
+  const st=$("#status");
+  if(!state.name.trim()){st.textContent="Add your name at the top first.";$("#name").focus();return;}
+  const btn=$("#submit");btn.disabled=true;st.textContent="Submitting…";
+  try{
+    // text/plain keeps this a simple request, so the browser skips the CORS preflight
+    const r=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...state,submittedAt:new Date().toISOString()})});
+    const res=await r.json();
+    if(!res.ok)throw new Error(res.error||"failed");
+    st.textContent="Submitted ✓ Thanks, "+state.name.trim()+"!";
+    loadResults();
+  }catch(e){st.textContent="Couldn't submit. Try again, or send it on WhatsApp below.";}
+  btn.disabled=false;
+};
+
+function showTab(which){
+  const f=which==="form";$("#tab-form").setAttribute("aria-selected",f);$("#tab-results").setAttribute("aria-selected",!f);
+  $("#view-form").hidden=!f;$("#view-results").hidden=f;
+  if(!f)loadResults();
+}
+$("#tab-form").onclick=()=>showTab("form");$("#tab-results").onclick=()=>showTab("results");
+
+function esc(s){const d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML;}
+function renderResults(rows){
+  const box=$("#results");
+  if(!rows.length){box.innerHTML='<p class="empty">Nobody has submitted yet.</p>';return;}
+  const head=`<tr><th>Activity</th>${rows.map(r=>`<th>${esc(r.name||"No name")}</th>`).join("")}</tr>`;
+  let body="";
+  for(const L of LISTS){body+=`<tr><td class="sec" colspan="${rows.length+1}">${esc(L.title)}</td></tr>`;
+    for(const [id,t] of L.items){body+=`<tr><td>${esc(t)}</td>${rows.map(r=>{const a=(r.answers||{})[id]||{};
+      const v=VL[a.v]?a.v:"";
+      return `<td>${v?`<span class="pill ${v}">${VL[v]}</span>`:'<span class="pill none">–</span>'}${a.note?`<span class="cellnote">${esc(a.note)}</span>`:""}</td>`}).join("")}</tr>`;}}
+  body+=`<tr><td class="sec" colspan="${rows.length+1}">Questions</td></tr>`;
+  const qrow=(lab,f)=>`<tr><td>${lab}</td>${rows.map(r=>`<td>${esc(f(r))}</td>`).join("")}</tr>`;
+  body+=qrow("3-day trip",tripText);
+  body+=qrow("Free days",r=>Array.isArray(r.days)&&r.days.length?"Nov "+r.days.join(", "):"–");
+  body+=qrow("Other ideas",r=>r.extra||"–");
+  box.innerHTML=`<div class="tablebox"><table>${head}${body}</table></div>`;
+}
+let loading=false;
+async function loadResults(){
+  if(loading)return;loading=true;
+  try{const r=await fetch(ENDPOINT);const rows=await r.json();renderResults(Array.isArray(rows)?rows:[]);}
+  catch(e){$("#results").innerHTML='<p class="empty">Couldn\'t load answers right now. Try again in a minute.</p>';}
+  loading=false;
+}
+
 $("#copy").onclick=async()=>{
   if(!state.name.trim()){$("#status").textContent="Add your name at the top first.";$("#name").focus();return;}
   const t=asText();
