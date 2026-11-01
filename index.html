@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>USA List Chicago</title>
+<meta name="description" content="Everything I want to do in America, November 16–30, 2026. Vote, add notes, and send me your answers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@600;800&family=Fira+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column like a printed itinerary; Chicago-flag header band (two light-blue stripes, four red stars) */
+:root{
+  --bg:#f6f8fa; --surface:#ffffff; --fg:#14202b; --muted:#5b6b78; --line:#d9e2e9;
+  --sky:#41b6e6; --sky-ink:#0b6f99; --star:#e4002b; --star-soft:#fde6ea;
+  --yes:#1d7a46; --yes-soft:#e3f4ea; --maybe:#9a6a00; --maybe-soft:#fbf1d9; --no:#a3263a; --no-soft:#fbe5e9;
+  --wa:#1f9d55;
+  --display:"Fira Sans Extra Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Fira Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f161c; --surface:#17212a; --fg:#e7eef3; --muted:#93a4b1; --line:#2a3946;
+  --sky:#41b6e6; --sky-ink:#7fd0f2; --star:#ff4d6a; --star-soft:#3a1a22;
+  --yes:#5fd08f; --yes-soft:#16301f; --maybe:#e8b84a; --maybe-soft:#33290f; --no:#ff7a8e; --no-soft:#3a1a22;
+  --wa:#25b865;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+header.flag{background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+header .wrap{padding-bottom:0}
+.stripe{height:14px;background:var(--sky)}
+.flag-inner{padding-block:22px 18px;display:flex;flex-direction:column;gap:10px}
+.stars{display:flex;gap:6px}
+.stars svg{width:22px;height:22px;fill:var(--star)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,7vw,3.4rem);line-height:1;margin:0;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+.dates{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky-ink);font-size:.95rem}
+button:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-within,a:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.who{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.who label{display:flex;flex-direction:column;gap:4px;font-weight:600;flex:1 1 220px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;width:100%}
+textarea{min-height:76px;resize:vertical}
+.status{font-size:.85rem;color:var(--muted);min-height:1.3em}
+section.block{margin-top:34px}
+h2{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:1.5rem;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+h2 .tag{font:600 .72rem var(--body);letter-spacing:.08em;background:var(--star);color:#fff;padding:2px 7px;border-radius:3px}
+.sub{margin:0 0 12px;color:var(--muted);font-size:.92rem}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.item:last-child{border-bottom:1px solid var(--line)}
+.item .t{min-width:0}
+.item .t b{font-weight:600}
+.item .t small{display:block;color:var(--muted);font-size:.85rem}
+.votes{display:flex;gap:4px}
+.votes button{font:600 .85rem var(--body);border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:5px 11px;cursor:pointer}
+.votes button[aria-pressed="true"][data-v="yes"]{background:var(--yes-soft);border-color:var(--yes);color:var(--yes)}
+.votes button[aria-pressed="true"][data-v="maybe"]{background:var(--maybe-soft);border-color:var(--maybe);color:var(--maybe)}
+.votes button[aria-pressed="true"][data-v="no"]{background:var(--no-soft);border-color:var(--no);color:var(--no)}
+.note-toggle{grid-column:1/-1;justify-self:start;background:none;border:0;color:var(--sky-ink);font:500 .85rem var(--body);padding:0;cursor:pointer}
+.note{grid-column:1/-1}
+@media (max-width:520px){.item{grid-template-columns:1fr}.votes{justify-content:flex-start}}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.days .wd{font:600 .72rem var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center}
+.day{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 0;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;color:var(--fg);font:500 1rem var(--body)}
+.day small{display:block;font-size:.68rem;color:var(--muted)}
+.day[aria-pressed="true"]{background:var(--sky);border-color:var(--sky);color:#06222f}
+.day[aria-pressed="true"] small{color:#06222f}
+.q{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.q > b{font-weight:600}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--surface);cursor:pointer;font-size:.92rem}
+.opts input{accent-color:var(--star)}
+.send{margin-top:34px;padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.send h2{font-size:1.3rem}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 1rem var(--display);letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:6px;padding:12px 18px;cursor:pointer;background:var(--star);color:#fff;text-decoration:none;display:inline-block}
+.btn.wa{background:var(--wa)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+@media (prefers-reduced-motion:no-preference){.votes button,.day{transition:background .12s,border-color .12s}}
+</style>
+</head>
+<body>
+<header class="flag">
+  <div class="stripe"></div>
+  <div class="wrap flag-inner">
+    <div class="stars" aria-hidden="true" id="stars"></div>
+    <div class="dates">Chicago · November 16–30, 2026</div>
+    <h1>USA List</h1>
+    <p class="lede">Everything I want to do in America. Tap <b>Let's go!</b>, <b>Maybe</b> or <b>Nope</b> on each one, add a note if you know a good spot, answer the questions, and send me your answers at the bottom.</p>
+  </div>
+  <div class="stripe"></div>
+</header>
+
+<main class="wrap">
+  <div class="who">
+    <label for="name">Your name
+      <input type="text" id="name" placeholder="e.g. Nikos" autocomplete="given-name">
+    </label>
+  </div>
+  <div id="lists"></div>
+
+  <section class="block" id="questions">
+    <h2>Questions</h2>
+    <p class="sub">So I can put together the day-by-day plan.</p>
+
+    <div class="q">
+      <b>Where should we fly for the 3-day trip?</b>
+      <div class="opts" id="opt-trip"></div>
+      <input type="text" id="trip-other" placeholder="Somewhere else? Write it here">
+    </div>
+    <div class="q">
+      <b>Which days work for you?</b>
+      <p class="sub" style="margin:0">Tap the days you're free, for the trip and for going out.</p>
+      <div class="days" id="days"></div>
+    </div>
+    <div class="q">
+      <label for="extra"><b>Any other ideas? Places, bars, restaurants, things I've missed.</b></label>
+      <textarea id="extra"></textarea>
+    </div>
+  </section>
+
+  <section class="send">
+    <h2>Send me your answers</h2>
+    <p class="sub" style="margin:0">Your answers stay on this phone or computer until you send them. Pick one:</p>
+    <div class="actions">
+      <a class="btn wa" id="wa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+      <button class="btn" id="copy" type="button">Copy my answers</button>
+    </div>
+    <span class="status" id="status"></span>
+    <textarea id="copybox" hidden readonly></textarea>
+  </section>
+</main>
+
+<script>
+const LISTS=[
+ {id:"nn",title:"Non-Negotiables",tag:"Must do",items:[
+  ["fiesta","Help Niko with work on Fiesta",""],
+  ["gun","Gun range",""],
+  ["game","NBA game or college football (or both), with a hot dog","Bulls Nov 20 or 23 · Illinois vs Northwestern Nov 28"],
+  ["bar","Bar with darts and billiards",""],
+  ["diner","Diner with eggs and pancakes or pie",""],
+  ["bbq","BBQ ribs",""],
+  ["stores","Walmart, Costco, Home Depot etc.",""],
+  ["road","Highway road trip","Start of Route 66?"],
+  ["junk","Junk food: Taco Bell, Dunkin', Wendy's etc.","Stuff I can't find in Greece"],
+  ["snacks","USA cancer-causing snacks and drinks","The ones I can't find in Greece"]]},
+ {id:"chi",title:"Chicago",items:[
+  ["boat","Boat on the river downtown",""],
+  ["downtown","Walk around downtown","Photo in front of Trump Tower"],
+  ["rooftop","Panoramic rooftop or a top floor of a skyscraper",""],
+  ["bean","The Bean",""],
+  ["theatre","Chicago Theatre",""],
+  ["pizza","American-style pizza and food",""],
+  ["el","Ride the L",""],
+  ["jazz","Jazz bar",""]]},
+ {id:"places",title:"Places",items:[
+  ["trip","New York / D.C. or anywhere else that fits Niko's schedule",""],
+  ["nature","A national park or beautiful Illinois countryside, plus a small American town",""],
+  ["lake","Lake Michigan spots worth seeing",""],
+  ["states","Visit neighboring states","Wisconsin? Iowa? Indiana?"],
+  ["farm","Visit an open farm or ranch and eat there",""]]},
+ {id:"oth",title:"Others",items:[
+  ["suburbs","Random walk in the suburbs",""],
+  ["school","High school with the yellow bus",""],
+  ["church","A classic American church","Lutheran, or something more intense"],
+  ["court","Attend a court trial",""],
+  ["smores","Marshmallows",""],
+  ["drive","Drive",""],
+  ["tv","Watch TV and the news with a beer",""],
+  ["nfl","Watch NFL on TV at a bar",""],
+  ["thanksgiving","Thanksgiving and Black Friday","Of course"]]}
+];
+const TRIPS=["D.C. + New York","Philadelphia + New York","Texas","Nashville","Memphis","Let's skip it"];
+const VOTES=[["yes","Let's go!"],["maybe","Maybe"],["no","Nope"]];
+const WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DAYS=[];for(let d=16;d<=30;d++)DAYS.push(d); // Nov 15, 2026 is a Sunday, so the trip starts on a Monday
+
+const $=s=>document.querySelector(s);
+const star='<svg viewBox="0 0 24 24"><polygon points="12,1 14.6,7.5 21.5,7.5 16,12 21.5,16.5 14.6,16.5 12,23 9.4,16.5 2.5,16.5 8,12 2.5,7.5 9.4,7.5"/></svg>';
+$("#stars").innerHTML=star.repeat(4);
+
+let state={name:"",answers:{},days:[],trip:"",tripOther:"",extra:""};
+try{const s=JSON.parse(localStorage.getItem("usa-list")||"null");if(s)state=Object.assign(state,s)}catch(e){}
+
+function renderLists(){
+  const box=$("#lists");box.innerHTML="";
+  for(const L of LISTS){
+    const sec=document.createElement("section");sec.className="block";
+    sec.innerHTML=`<h2>${L.title}${L.tag?` <span class="tag">${L.tag}</span>`:""}</h2>`;
+    for(const [id,t,s] of L.items){
+      const a=state.answers[id]||{};
+      const row=document.createElement("div");row.className="item";
+      row.innerHTML=`<div class="t"><b></b>${s?"<small></small>":""}</div>
+        <div class="votes" role="group">${VOTES.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${a.v===v}">${l}</button>`).join("")}</div>
+        <button type="button" class="note-toggle"${a.note?" hidden":""}>+ add a note</button>
+        <input type="text" class="note" id="note-${id}" placeholder="I know a place, an idea, when..."${a.note?"":" hidden"}>`;
+      row.querySelector("b").textContent=t;
+      if(s)row.querySelector("small").textContent=s;
+      const note=row.querySelector(".note");note.value=a.note||"";
+      row.querySelectorAll(".votes button").forEach(b=>b.onclick=()=>{
+        const cur=state.answers[id]||{};cur.v=cur.v===b.dataset.v?"":b.dataset.v;state.answers[id]=cur;
+        row.querySelectorAll(".votes button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===cur.v));changed();});
+      row.querySelector(".note-toggle").onclick=e=>{e.target.hidden=true;note.hidden=false;note.focus();};
+      note.oninput=()=>{const cur=state.answers[id]||{};cur.note=note.value;state.answers[id]=cur;changed();};
+      sec.appendChild(row);
+    }
+    box.appendChild(sec);
+  }
+}
+function renderDays(){
+  const g=$("#days");g.innerHTML=WD.map(w=>`<div class="wd">${w}</div>`).join("")+"<div></div>".repeat((DAYS[0]-15)%7);
+  DAYS.forEach(d=>{const b=document.createElement("button");b.type="button";b.className="day";
+    const dow=(d-15)%7;b.innerHTML=`${d}<small>${d===26?"Thanksg.":"Nov"}</small>`;
+    b.setAttribute("aria-label",`${WD[dow]} November ${d}`);
+    b.setAttribute("aria-pressed",state.days.includes(d));
+    b.onclick=()=>{state.days=state.days.includes(d)?state.days.filter(x=>x!==d):[...state.days,d].sort((a,b)=>a-b);
+      b.setAttribute("aria-pressed",state.days.includes(d));changed();};
+    g.appendChild(b);});
+}
+function renderTrips(){
+  const box=$("#opt-trip");box.innerHTML="";
+  TRIPS.forEach((o,i)=>{const lab=document.createElement("label");
+    lab.innerHTML=`<input type="radio" name="trip" id="trip-${i}">`;lab.append(o);
+    const inp=lab.querySelector("input");inp.checked=state.trip===o;
+    inp.onchange=()=>{state.trip=o;changed();};box.appendChild(lab);});
+}
+$("#name").value=state.name||"";$("#trip-other").value=state.tripOther||"";$("#extra").value=state.extra||"";
+$("#name").oninput=e=>{state.name=e.target.value;changed();};
+$("#trip-other").oninput=e=>{state.tripOther=e.target.value;changed();};
+$("#extra").oninput=e=>{state.extra=e.target.value;changed();};
+renderLists();renderDays();renderTrips();
+
+const VL={yes:"Let's go!",maybe:"Maybe",no:"Nope"};
+const tripText=r=>[r.trip,r.tripOther].filter(Boolean).join(" · ")||"-";
+function asText(){
+  const out=[`USA LIST · answers from ${state.name||"(no name)"}`,""];
+  for(const L of LISTS){out.push(L.title.toUpperCase());
+    for(const [id,t] of L.items){const a=state.answers[id]||{};out.push(`- ${t}: ${VL[a.v]||"-"}${a.note?` (${a.note})`:""}`);}out.push("");}
+  out.push("3-day trip: "+tripText(state));
+  out.push("Free days: "+(state.days.length?"Nov "+state.days.join(", "):"-"));
+  out.push("Other ideas: "+(state.extra||"-"));
+  return out.join("\n");
+}
+function changed(){
+  try{localStorage.setItem("usa-list",JSON.stringify(state))}catch(e){}
+  updateWa();
+}
+function updateWa(){$("#wa").href="https://wa.me/?text="+encodeURIComponent(asText());}
+updateWa();
+$("#wa").addEventListener("click",e=>{
+  if(!state.name.trim()){e.preventDefault();$("#status").textContent="Add your name at the top first.";$("#name").focus();}
+});
+$("#copy").onclick=async()=>{
+  if(!state.name.trim()){$("#status").textContent="Add your name at the top first.";$("#name").focus();return;}
+  const t=asText();
+  try{await navigator.clipboard.writeText(t);$("#status").textContent="Copied. Paste it to me on Viber, WhatsApp or Messenger.";}
+  catch(e){const box=$("#copybox");box.hidden=false;box.value=t;box.focus();box.select();$("#status").textContent="Copy the text below and send it to me.";}
+};
+</script>
+</body>
+</html>
