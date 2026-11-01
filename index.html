@@ -92,17 +92,82 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--
 .pill.none{color:var(--muted)}
 .cellnote{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
 .empty{color:var(--muted);padding:20px 0}
+/* Full-screen photo scenes: the opening splash (1776) and the thank-you after Submit (modern day) */
+.scene{position:fixed;inset:0;z-index:50;background:#0b0f13;color:#fff;display:flex;align-items:flex-end;overflow:hidden}
+.scene picture,.scene img{position:absolute;inset:0;width:100%;height:100%;max-width:none}
+.scene img{object-fit:cover;object-position:center 30%}
+.scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.15) 0%,rgba(8,10,14,.05) 40%,rgba(8,10,14,.78) 78%,rgba(8,10,14,.92) 100%)}
+.scene .copy{position:relative;z-index:1;width:100%;max-width:760px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:0 calc(36px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.scene .kicker{font:600 .9rem var(--display);letter-spacing:.16em;text-transform:uppercase;color:#9fdcf5}
+.scene h2.big{font-family:var(--display);font-weight:800;font-size:clamp(3rem,13vw,6.5rem);line-height:.9;margin:0;text-transform:uppercase;letter-spacing:.01em;display:block}
+.scene p{margin:0;max-width:46ch;color:rgba(255,255,255,.86);font-size:1.05rem}
+.scene .stars svg{width:20px;height:20px;fill:#ff3b55}
+.scene .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+.scene .btn.light{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55)}
+.loadbar{height:3px;width:min(280px,70%);background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.loadbar i{display:block;height:100%;width:0;background:#41b6e6}
+#enter{opacity:0;pointer-events:none}
+.ready #enter{opacity:1;pointer-events:auto}
+.ready .loadbar{display:none}
+.scene.leaving{opacity:0;pointer-events:none}
+.scene[hidden]{display:none}
+body.locked{overflow:hidden}
+@media (prefers-reduced-motion:no-preference){
+  .scene{transition:opacity .7s ease}
+  .scene img{animation:drift 14s ease-out both}
+  .scene .copy > *{animation:rise .8s ease-out both}
+  .scene .copy > *:nth-child(2){animation-delay:.1s}.scene .copy > *:nth-child(3){animation-delay:.2s}
+  .scene .copy > *:nth-child(4){animation-delay:.3s}.scene .copy > *:nth-child(5){animation-delay:.4s}
+  .loadbar i{animation:load 1.6s ease-in-out forwards}
+  #enter{transition:opacity .4s ease}
+}
+@keyframes drift{from{transform:scale(1.08)}to{transform:scale(1)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes load{to{width:100%}}
 @media (prefers-reduced-motion:no-preference){.votes button,.day{transition:background .12s,border-color .12s}}
 </style>
 </head>
-<body>
+<body class="locked">
+<div class="scene" id="splash" role="dialog" aria-label="Welcome">
+  <picture>
+    <source media="(orientation: portrait)" srcset="images/revolution-portrait.jpg">
+    <img src="images/revolution-landscape.jpg" alt="Continental soldiers crouched behind a log barricade as redcoats advance through the smoke">
+  </picture>
+  <div class="copy">
+    <div class="stars" aria-hidden="true" id="splash-stars"></div>
+    <div class="kicker">1776 · Chicago · Nov 16–30, 2026</div>
+    <h2 class="big">USA List</h2>
+    <p>Everything I want to do in America. Your vote decides.</p>
+    <div class="row">
+      <div class="loadbar" aria-hidden="true"><i></i></div>
+      <button class="btn" id="enter" type="button">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div class="scene" id="thanks" role="dialog" aria-label="Thank you" hidden>
+  <picture>
+    <source media="(orientation: portrait)" srcset="images/modern-portrait.jpg">
+    <img src="images/modern-landscape.jpg" alt="Two soldiers in modern combat gear kneeling behind a mud-brick wall in a desert village" loading="lazy">
+  </picture>
+  <div class="copy">
+    <div class="kicker">Mission accomplished</div>
+    <h2 class="big" id="thanks-title">Thank you!</h2>
+    <p>Your answers are in. See you in Chicago.</p>
+    <div class="row">
+      <button class="btn" id="thanks-results" type="button">See everyone's answers</button>
+      <button class="btn light" id="thanks-close" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
 <header class="flag">
   <div class="stripe"></div>
   <div class="wrap flag-inner">
     <div class="stars" aria-hidden="true" id="stars"></div>
     <div class="dates">Chicago · November 16–30, 2026</div>
     <h1>USA List</h1>
-    <p class="lede">Everything I want to do in America. Tap <b>Let's go!</b>, <b>Maybe</b> or <b>Nope</b> on each one, add a note if you know a good spot, answer the questions, and send me your answers at the bottom.</p>
+    <p class="lede">Everything I want to do in America. Tap <b>Let's go!</b>, <b>Maybe</b> or <b>Nope</b> on each one, add a note if you know a good spot, answer the questions, and hit Submit at the bottom.</p>
   </div>
   <div class="stripe"></div>
 </header>
@@ -291,9 +356,33 @@ $("#submit").onclick=async()=>{
     if(!res.ok)throw new Error(res.error||"failed");
     st.textContent="Submitted ✓ Thanks, "+state.name.trim()+"!";
     loadResults();
+    showThanks();
   }catch(e){st.textContent="Couldn't submit. Try again, or send it on WhatsApp below.";}
   btn.disabled=false;
 };
+
+// Splash: Enter appears once the photo has loaded (or after 4 s on a slow connection)
+$("#splash-stars").innerHTML=star.repeat(4);
+const splash=$("#splash");
+function splashReady(){splash.classList.add("ready");}
+const splashImg=splash.querySelector("img");
+if(splashImg.complete)setTimeout(splashReady,1600);
+else{splashImg.addEventListener("load",()=>setTimeout(splashReady,900));splashImg.addEventListener("error",splashReady);}
+setTimeout(splashReady,4000);
+function closeScene(el){
+  el.classList.add("leaving");document.body.classList.remove("locked");
+  setTimeout(()=>{el.hidden=true;el.classList.remove("leaving");},700);
+}
+$("#enter").onclick=()=>closeScene(splash);
+
+function showThanks(){
+  const t=$("#thanks");
+  $("#thanks-title").textContent="Thank you, "+(state.name.trim().split(/\s+/)[0]||"friend")+"!";
+  t.hidden=false;document.body.classList.add("locked");
+  $("#thanks-close").focus();
+}
+$("#thanks-close").onclick=()=>closeScene($("#thanks"));
+$("#thanks-results").onclick=()=>{closeScene($("#thanks"));showTab("results");window.scrollTo(0,0);};
 
 function showTab(which){
   const f=which==="form";$("#tab-form").setAttribute("aria-selected",f);$("#tab-results").setAttribute("aria-selected",!f);
